@@ -56,6 +56,12 @@ First run:
 | `s` | save settings |
 | `q` / Esc | quit |
 
+If you only see "camera reports" and no window, no frames are arriving: the
+default index 0 may be a virtual camera (OBS) or an iPhone, or the terminal
+lacks Camera permission. Run `python -m stepcam --probe` to see which index
+delivers frames (it opens every camera briefly, which can wake a paired
+iPhone), then use `--source N`.
+
 Useful flags: `--mirror` (camera faces the player), `--fps`, `--width`,
 `--height`, `--exposure` / `--auto-exposure` (raw `CAP_PROP_*` values; their
 meaning depends on the OpenCV backend, so check the "camera reports" line and

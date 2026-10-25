@@ -1,6 +1,7 @@
 import argparse
 
 from .app import run
+from .capture import probe
 
 
 def main():
@@ -16,7 +17,12 @@ def main():
     p.add_argument("--keys", action="store_true", help="start with key output on")
     p.add_argument("--headless", action="store_true", help="no window; needs a saved calibration")
     p.add_argument("--seconds", type=float, help="stop after this many seconds")
-    run(p.parse_args())
+    p.add_argument("--probe", action="store_true", help="list which camera indexes deliver frames, then exit")
+    args = p.parse_args()
+    if args.probe:
+        probe()
+    else:
+        run(args)
 
 
 if __name__ == "__main__":

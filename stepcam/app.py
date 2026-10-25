@@ -111,6 +111,7 @@ def run(args):
 
     print("camera reports:", cap.actual)
     seen = 0
+    warned = False
     started = time.perf_counter()
     proc_ms = age_ms = 0.0
     result = None
@@ -119,6 +120,13 @@ def run(args):
             if args.seconds and time.perf_counter() - started > args.seconds:
                 break
             item = cap.latest()
+            if item is None and not warned and time.perf_counter() - started > 3:
+                warned = True
+                print(
+                    f"no frames from source {args.source!r} after 3s. Wrong camera index "
+                    "(OBS Virtual Camera and iPhone also count), or no Camera permission "
+                    "for this terminal? Run with --probe to see which index delivers frames."
+                )
             if item is None or item[0] == seen:
                 if cap.eof and item and item[0] == seen:
                     break

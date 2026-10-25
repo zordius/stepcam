@@ -12,11 +12,31 @@ def _fourcc(value):
     return "".join(chr((int(value) >> (8 * i)) & 0xFF) for i in range(4)).strip("\x00 ") or "?"
 
 
+def _open(source):
+    backend = cv2.CAP_ANY if isinstance(source, str) or sys.platform != "darwin" else cv2.CAP_AVFOUNDATION
+    return cv2.VideoCapture(source, backend)
+
+
+def probe(max_index=4, seconds=2.0):
+    """Try camera indexes and print which ones actually deliver frames."""
+    for index in range(max_index + 1):
+        cap = _open(index)
+        if not cap.isOpened():
+            print(f"camera {index}: cannot open")
+            continue
+        frames, t0 = 0, time.perf_counter()
+        while time.perf_counter() - t0 < seconds:
+            ok, frame = cap.read()
+            frames += ok
+        size = f"{int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))}"
+        print(f"camera {index}: {frames} frames in {seconds:.0f}s, {size}" + ("" if frames else "  <- no frames"))
+        cap.release()
+
+
 class Capture:
     def __init__(self, source=0, width=640, height=480, fps=60, mirror=False, props=None):
         self.is_file = isinstance(source, str)
-        backend = cv2.CAP_ANY if self.is_file or sys.platform != "darwin" else cv2.CAP_AVFOUNDATION
-        self.cap = cv2.VideoCapture(source, backend)
+        self.cap = _open(source)
         if not self.cap.isOpened():
             raise RuntimeError(f"cannot open video source {source!r}")
         if not self.is_file:
@@ -60,8 +80,11 @@ class Capture:
             ok, frame = self.cap.read()
             ts = time.perf_counter()  # when read() returned, not when light hit the sensor
             if not ok:
-                self.eof = True
-                return
+                if self.is_file:
+                    self.eof = True
+                    return
+                time.sleep(0.05)  # a live camera may just be slow to start
+                continue
             if self.mirror:
                 frame = cv2.flip(frame, 1)
             with self._lock:
