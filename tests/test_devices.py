@@ -48,5 +48,47 @@ def test_scan_order_without_names_is_plain_index_order():
     assert devices.scan_order([], max_index=3) == [0, 1, 2, 3]
 
 
+CAMS = [(0, "陳建宏的iPhone Camera"), (1, "FaceTime HD Camera (Built-in)"), (2, "OBS Virtual Camera")]
+
+
+def test_resolve_digits_is_a_camera_index():
+    assert devices.resolve_source("2", CAMS) == 2
+
+
+def test_resolve_existing_path_is_a_file(tmp_path):
+    clip = tmp_path / "clip.avi"
+    clip.write_bytes(b"")
+    assert devices.resolve_source(str(clip), CAMS) == str(clip)
+
+
+def test_resolve_matches_a_name_substring_case_insensitively():
+    assert devices.resolve_source("facetime", CAMS) == 1
+    assert devices.resolve_source("OBS", CAMS) == 2
+    assert devices.resolve_source("iphone", CAMS) == 0
+
+
+def test_resolve_with_several_matches_takes_the_one_auto_detect_tries_first(capsys):
+    assert devices.resolve_source("camera", CAMS) == 1  # FaceTime before OBS Virtual before iPhone
+    assert "3 cameras match" in capsys.readouterr().err
+
+
+def test_resolve_raises_and_lists_cameras_when_nothing_matches():
+    try:
+        devices.resolve_source("logitech", CAMS)
+    except LookupError as e:
+        assert "logitech" in str(e) and "FaceTime" in str(e)
+    else:
+        raise AssertionError("expected LookupError")
+
+
+def test_resolve_a_name_without_any_camera_names_raises():
+    try:
+        devices.resolve_source("facetime", [])
+    except LookupError:
+        pass
+    else:
+        raise AssertionError("expected LookupError")
+
+
 def test_camera_name_is_empty_for_video_files():
     assert devices.camera_name("clip.avi", [(0, "x")]) == ""

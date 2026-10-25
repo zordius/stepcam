@@ -7,7 +7,7 @@ import numpy as np
 from . import config
 from .capture import Capture, find_camera
 from .config import GRID
-from .devices import camera_name
+from .devices import camera_name, resolve_source
 from .geometry import project
 from .output import KeyOutput
 from .pipeline import Pipeline
@@ -104,7 +104,10 @@ def run(args):
     if args.source is None:
         source = find_camera()
     else:
-        source = int(args.source) if args.source.isdigit() else args.source
+        try:
+            source = resolve_source(args.source)
+        except LookupError as e:
+            raise SystemExit(f"error: {e}")  # exit code 1
     name = camera_name(source)
     source_label = f"camera {source}" + (f" ({name})" if name else "") if isinstance(source, int) else str(source)
     print("using", source_label)

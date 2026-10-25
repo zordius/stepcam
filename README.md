@@ -61,8 +61,13 @@ the first one that delivers a frame within 1 second is used. The order is by
 name: ordinary cameras first, then names containing "virtual" (e.g. OBS Virtual
 Camera), then names containing "iPhone" or "iPad" (case-insensitive); within a
 group, index order. Because iPhones come last, they are only woken when nothing
-else works. Without camera names (not macOS) it is plain index order. Pass
-`--source N` to pick one.
+else works. Without camera names (not macOS) it is plain index order.
+
+`--source` picks one explicitly: a number is a camera index, an existing path is
+a video file, and any other text is matched as a case-insensitive substring of
+the camera names (`--source facetime`, `--source "iphone"`). With several
+matches the one auto-detect would try first wins. If nothing matches, it prints
+the available cameras and exits with status 1 without opening anything.
 `--list-cameras` prints the index and name of every camera without opening any
 of them; the same list is shown at startup and the chosen camera is shown in
 the HUD. Names come from AVFoundation (pyobjc) and are numbered the way

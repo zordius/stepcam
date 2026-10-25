@@ -1,4 +1,5 @@
 """Camera names, numbered the way OpenCV's AVFoundation backend numbers them (macOS)."""
+import os
 import sys
 
 
@@ -38,6 +39,28 @@ def scan_order(cameras, max_index=9):
     if not cameras:
         return list(range(max_index + 1))
     return [index for index, _ in sorted(cameras, key=lambda c: (_rank(c[1]), c[0]))]
+
+
+def resolve_source(arg, cameras=None):
+    """Turn a --source value into a camera index or a video file path.
+
+    Digits are an index and an existing path is a file; anything else is matched
+    as a case-insensitive substring of the camera names. Several matches take the
+    one auto-detect would try first. Raises LookupError when nothing matches.
+    """
+    if arg.isdigit():
+        return int(arg)
+    if os.path.exists(arg):
+        return arg
+    cameras = list_cameras() if cameras is None else cameras
+    names = dict(cameras)
+    matches = [i for i in scan_order(cameras) if i in names and arg.lower() in names[i].lower()]
+    if not matches:
+        available = ", ".join(f"[{i}] {n}" for i, n in cameras) or "none (camera names need macOS + pyobjc)"
+        raise LookupError(f"--source {arg!r} is not a camera index or an existing file, and no camera name contains it. Cameras: {available}")
+    if len(matches) > 1:
+        print(f"{len(matches)} cameras match {arg!r}: {matches}; using {matches[0]}", file=sys.stderr)
+    return matches[0]
 
 
 def camera_name(index, cameras=None):

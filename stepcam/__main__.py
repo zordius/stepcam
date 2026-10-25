@@ -6,7 +6,11 @@ from .devices import list_cameras
 
 def main():
     p = argparse.ArgumentParser(prog="stepcam", description="Webcam virtual dance pad")
-    p.add_argument("--source", help="camera index or video file (default: first camera that delivers a frame)")
+    p.add_argument(
+        "--source",
+        help="camera index, part of a camera name (case-insensitive), or video file; "
+        "exits with an error if nothing matches (default: first camera that delivers a frame)",
+    )
     p.add_argument("--width", type=int, default=640)
     p.add_argument("--height", type=int, default=480)
     p.add_argument("--fps", type=int, default=60)
