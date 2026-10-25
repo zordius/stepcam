@@ -7,6 +7,8 @@ from collections import deque
 
 import cv2
 
+from .devices import camera_name, list_cameras
+
 
 def _fourcc(value):
     return "".join(chr((int(value) >> (8 * i)) & 0xFF) for i in range(4)).strip("\x00 ") or "?"
@@ -19,6 +21,9 @@ def _open(source):
 
 def find_camera(max_index=9, timeout=1.0):
     """First camera index that delivers a frame within `timeout` seconds."""
+    names = list_cameras()
+    for index, name in names:
+        print(f"  [{index}] {name}")
     for index in range(max_index + 1):
         cap = _open(index)
         if not cap.isOpened():
@@ -29,7 +34,8 @@ def find_camera(max_index=9, timeout=1.0):
         while not got and time.perf_counter() - t0 < timeout:
             got, _ = cap.read()
         cap.release()
-        print(f"camera {index}: {'frames OK' if got else f'no frame within {timeout:g}s, skipping'}")
+        label = f"camera {index}" + (f" ({camera_name(index, names)})" if camera_name(index, names) else "")
+        print(f"{label}: {'frames OK' if got else f'no frame within {timeout:g}s, skipping'}")
         if got:
             return index
     raise RuntimeError("no camera delivered a frame; does this terminal have Camera permission?")

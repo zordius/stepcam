@@ -1,6 +1,7 @@
 import argparse
 
 from .app import run
+from .devices import list_cameras
 
 
 def main():
@@ -16,7 +17,16 @@ def main():
     p.add_argument("--keys", action="store_true", help="start with key output on")
     p.add_argument("--headless", action="store_true", help="no window; needs a saved calibration")
     p.add_argument("--seconds", type=float, help="stop after this many seconds")
-    run(p.parse_args())
+    p.add_argument("--list-cameras", action="store_true", help="print camera indexes and names, then exit")
+    args = p.parse_args()
+    if args.list_cameras:
+        cameras = list_cameras()
+        for index, name in cameras:
+            print(f"[{index}] {name}")
+        if not cameras:
+            print("no camera names available (macOS with pyobjc-framework-AVFoundation only)")
+    else:
+        run(args)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import numpy as np
 from . import config
 from .capture import Capture, find_camera
 from .config import GRID
+from .devices import camera_name
 from .geometry import project
 from .output import KeyOutput
 from .pipeline import Pipeline
@@ -104,6 +105,9 @@ def run(args):
         source = find_camera()
     else:
         source = int(args.source) if args.source.isdigit() else args.source
+    name = camera_name(source)
+    source_label = f"camera {source}" + (f" ({name})" if name else "") if isinstance(source, int) else str(source)
+    print("using", source_label)
     cap =Capture(source, args.width, args.height, args.fps, args.mirror, props).start()
     keys = KeyOutput(args.keys)
     ui = Ui()
@@ -172,6 +176,7 @@ def run(args):
                 cv2.putText(cam, str(i + 1), (int(pt[0]) + 8, int(pt[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, RED, 1)
             fps, jitter, worst = cap.stats()
             lines = [
+                (source_label, GRAY),
                 (f"fps {fps:5.1f}  interval sd {jitter:4.1f} ms  max {worst:5.1f} ms", WHITE),
                 (f"process {proc_ms:4.1f} ms  frame age at output {age_ms:5.1f} ms", WHITE),
                 (f"thresh {cfg.diff_thresh}  inset {cfg.inset:.2f}  keys {'ON' if keys.enabled else 'off'}", GREEN if keys.enabled else GRAY),
