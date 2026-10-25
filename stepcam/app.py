@@ -26,6 +26,13 @@ class Ui:
         if event == cv2.EVENT_LBUTTONUP and self.clicks is not None and len(self.clicks) < 4:
             self.clicks.append((x, y))
 
+    def take_corners(self):
+        """The four clicked corners once complete (and leave click mode), else None."""
+        if self.clicks is None or len(self.clicks) < 4:
+            return None
+        corners, self.clicks = self.clicks, None
+        return corners
+
 
 def _quad(rect):
     x0, y0, x1, y1 = rect
@@ -150,6 +157,11 @@ def run(args):
             if args.headless:
                 continue
 
+            corners = ui.take_corners()  # before drawing: the HUD indexes ui.clicks
+            if corners:
+                pipe.set_corners(corners)
+                result = None
+
             cam = frame.copy()
             if pipe.H is not None:
                 cam = draw_camera(cam, pipe)
@@ -177,12 +189,7 @@ def run(args):
                 cam = np.hstack([cam, ground])
             cv2.imshow(WINDOW, cam)
 
-            if ui.clicks is not None and len(ui.clicks) == 4:
-                pipe.set_corners(ui.clicks)
-                ui.clicks = None
-                result = None
-
-            k = cv2.waitKey(1) & 0xFF
+            k =cv2.waitKey(1) & 0xFF
             if k in (27, ord("q")):
                 break
             elif k == ord("c"):
