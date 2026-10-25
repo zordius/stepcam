@@ -37,3 +37,48 @@ python3 -m venv .venv
 
 macOS: grant the terminal Camera and Accessibility permissions
 (System Settings → Privacy & Security).
+
+First run:
+
+1. Click the four corners of the grid on the floor as the camera sees it:
+   bottom-left, bottom-right, top-right, top-left. "Up" is the top edge.
+2. With the floor empty, press `b` to capture the background.
+3. Step on the edge cells. Press `k` to turn key output on (arrow keys),
+   `s` to save the calibration to `config.json`.
+
+| Key | Action |
+|---|---|
+| `c` | re-click the four corners |
+| `b` | recapture the empty-floor background |
+| `+` / `-` | background-difference threshold |
+| `[` / `]` | shrink / grow the dead gap at each active cell's edge |
+| `k` | toggle key output (off at start unless `--keys`) |
+| `s` | save settings |
+| `q` / Esc | quit |
+
+Useful flags: `--mirror` (camera faces the player), `--fps`, `--width`,
+`--height`, `--exposure` / `--auto-exposure` (raw `CAP_PROP_*` values; their
+meaning depends on the OpenCV backend, so check the "camera reports" line and
+the on-screen frame interval stats to see whether they took effect),
+`--source file.avi --headless` (replay a video and print events).
+
+The HUD shows the frame interval jitter, processing time, and frame age at
+output, so the same window works as the latency / stability debug view.
+
+## Test
+
+```bash
+.venv/bin/pip install pytest
+.venv/bin/python -m pytest
+```
+
+## Known limitations
+
+- Not yet tested against a real camera; the unit tests and a headless replay of
+  a synthetic video pass.
+- Press = a foot's lowest point stays in a cell for `debounce` frames. A foot
+  hovering in the air projects to the wrong ground point, so airborne feet can
+  trigger or miss presses. Landing detection (audio / vibration) is the planned fix.
+- Two feet are found as peaks of the silhouette's bottom contour; feet touching
+  or crossing merge into one.
+- The whole image is analysed, so anyone else moving in frame counts as a foot.
