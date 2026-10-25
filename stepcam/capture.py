@@ -7,7 +7,7 @@ from collections import deque
 
 import cv2
 
-from .devices import camera_name, list_cameras
+from .devices import camera_name, list_cameras, scan_order
 
 
 def _fourcc(value):
@@ -24,7 +24,7 @@ def find_camera(max_index=9, timeout=1.0):
     names = list_cameras()
     for index, name in names:
         print(f"  [{index}] {name}")
-    for index in range(max_index + 1):
+    for index in scan_order(names, max_index):
         cap = _open(index)
         if not cap.isOpened():
             cap.release()

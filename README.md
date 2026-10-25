@@ -56,10 +56,13 @@ First run:
 | `s` | save settings |
 | `q` / Esc | quit |
 
-Without `--source`, the camera is auto-detected: indexes 0, 1, 2, ... are tried
-in turn and the first one that delivers a frame within 1 second is used (virtual
-cameras such as OBS and a paired iPhone are skipped when they stay silent, but
-trying them can briefly wake the iPhone). Pass `--source N` to pick one.
+Without `--source`, the camera is auto-detected: cameras are tried in turn and
+the first one that delivers a frame within 1 second is used. The order is by
+name: ordinary cameras first, then names containing "virtual" (e.g. OBS Virtual
+Camera), then names containing "iPhone" or "iPad" (case-insensitive); within a
+group, index order. Because iPhones come last, they are only woken when nothing
+else works. Without camera names (not macOS) it is plain index order. Pass
+`--source N` to pick one.
 `--list-cameras` prints the index and name of every camera without opening any
 of them; the same list is shown at startup and the chosen camera is shown in
 the HUD. Names come from AVFoundation (pyobjc) and are numbered the way
