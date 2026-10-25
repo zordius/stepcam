@@ -56,11 +56,10 @@ First run:
 | `s` | save settings |
 | `q` / Esc | quit |
 
-If you only see "camera reports" and no window, no frames are arriving: the
-default index 0 may be a virtual camera (OBS) or an iPhone, or the terminal
-lacks Camera permission. Run `python -m stepcam --probe` to see which index
-delivers frames (it opens every camera briefly, which can wake a paired
-iPhone), then use `--source N`.
+Without `--source`, the camera is auto-detected: indexes 0, 1, 2, ... are tried
+in turn and the first one that delivers a frame within 1 second is used (virtual
+cameras such as OBS and a paired iPhone are skipped when they stay silent, but
+trying them can briefly wake the iPhone). Pass `--source N` to pick one.
 
 Useful flags: `--mirror` (camera faces the player), `--fps`, `--width`,
 `--height`, `--exposure` / `--auto-exposure` (raw `CAP_PROP_*` values; their

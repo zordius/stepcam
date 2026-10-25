@@ -17,20 +17,22 @@ def _open(source):
     return cv2.VideoCapture(source, backend)
 
 
-def probe(max_index=4, seconds=2.0):
-    """Try camera indexes and print which ones actually deliver frames."""
+def find_camera(max_index=9, timeout=1.0):
+    """First camera index that delivers a frame within `timeout` seconds."""
     for index in range(max_index + 1):
         cap = _open(index)
         if not cap.isOpened():
-            print(f"camera {index}: cannot open")
+            cap.release()
             continue
-        frames, t0 = 0, time.perf_counter()
-        while time.perf_counter() - t0 < seconds:
-            ok, frame = cap.read()
-            frames += ok
-        size = f"{int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))}"
-        print(f"camera {index}: {frames} frames in {seconds:.0f}s, {size}" + ("" if frames else "  <- no frames"))
+        t0 = time.perf_counter()
+        got = False
+        while not got and time.perf_counter() - t0 < timeout:
+            got, _ = cap.read()
         cap.release()
+        print(f"camera {index}: {'frames OK' if got else f'no frame within {timeout:g}s, skipping'}")
+        if got:
+            return index
+    raise RuntimeError("no camera delivered a frame; does this terminal have Camera permission?")
 
 
 class Capture:
